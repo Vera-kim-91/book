@@ -159,11 +159,11 @@ export default function AdminDashboard({
                 <th>이름</th>
                 <th>조</th>
                 <th>주제</th>
-                <th>분량</th>
-                <th>문장</th>
-                <th>리듬</th>
-                <th>이탈</th>
-                <th>톤</th>
+                <th>선호하는 분량</th>
+                <th>좋아하는 문장형태</th>
+                <th>책과 나의 거리</th>
+                <th>멈추게 되는 지점</th>
+                <th>모임에서 원하는 것</th>
                 <th>준비</th>
                 <th>우선</th>
               </tr>
@@ -214,12 +214,12 @@ export default function AdminDashboard({
           const isPrioritized = star(a);
 
           const cells = [
-            ['분량', codeOf(QUESTIONS[2], a.q3)],
-            ['문장', codeOf(QUESTIONS[3], a.q4)],
-            ['한 번에', codeOf(QUESTIONS[5], a.q6)],
-            ['멈추는 곳', stops(a) || '—'],
-            ['그날', codeOf(QUESTIONS[7], a.q8)],
-            ['책과의 거리', codeOf(QUESTIONS[4], a.q5)],
+            ['선호하는 분량', a.q3 !== undefined ? QUESTIONS[2]!.opts![a.q3] : '—'],
+            ['좋아하는 문장형태', a.q4 !== undefined ? QUESTIONS[3]!.opts![a.q4] : '—'],
+            ['선호하는 독서시간', a.q6 !== undefined ? QUESTIONS[5]!.opts![a.q6] : '—'],
+            ['멈추게 되는 지점', a.q7 && a.q7.length > 0 ? a.q7.map(idx => QUESTIONS[6]!.opts![idx]).join(' · ') : '—'],
+            ['모임에서 원하는 것', a.q8 !== undefined ? QUESTIONS[7]!.opts![a.q8] : '—'],
+            ['책과 나의 거리', a.q5 !== undefined ? QUESTIONS[4]!.opts![a.q5] : '—'],
           ];
 
           return (
@@ -244,7 +244,7 @@ export default function AdminDashboard({
 
               {/* Good Book (Q2) */}
               <div className="quote">
-                <span className="qlab">좋았던 것</span>
+                <span className="qlab">좋았던 책</span>
                 {t.title ? (
                   <>
                     <div className="qtitle">「{t.title}」</div>
@@ -257,7 +257,7 @@ export default function AdminDashboard({
 
               {/* Dropped Book (Q10) */}
               <div className="quote">
-                <span className="qlab">덮어둔 것</span>
+                <span className="qlab">덮어둔 책</span>
                 {d.v ? (
                   <div className="qtitle" style={{ fontSize: '16px' }}>
                     {d.v}
@@ -298,7 +298,7 @@ export default function AdminDashboard({
                   <span className="line"></span>
                 </div>
                 <div className="picks">
-                  당일 선택 &nbsp; □ 이 책 &nbsp; □ 다른 책 &nbsp; □ 지참
+                  당일 선택 &nbsp;&nbsp; □ 스스로 준비한 책{b.mode === 1 && b.book ? `: ${b.book}` : ''} &nbsp;&nbsp;&nbsp;&nbsp; □ 현장에서 추천받기
                 </div>
               </div>
             </article>

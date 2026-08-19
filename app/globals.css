@@ -533,27 +533,52 @@ select {
   display: block;
 }
 
+@page {
+  size: A4 portrait;
+  margin: 15mm;
+}
+
 @media print {
-  body {
-    background: #fff;
+  html, body {
+    background: #fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .noprint {
     display: none !important;
   }
   .adminwrap {
-    padding: 0;
-    max-width: none;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+  .cards {
+    margin-top: 0 !important;
   }
   .card {
-    border: 0;
-    padding: 0 0 20px;
-    margin: 0 0 34px;
-    page-break-after: always;
-    break-after: page;
+    border: 0 !important;
+    padding: 0 0 30px !important;
+    margin: 0 !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .card:last-child {
-    page-break-after: auto;
-    break-after: auto;
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+  .grid {
+    background: var(--line) !important;
+    border: 1px solid var(--line) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .cell {
+    background: #fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
 
