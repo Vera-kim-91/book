@@ -102,6 +102,7 @@ export default function SurveyForm({ session }: SurveyFormProps) {
       const res = await submitSurvey(session, name, answers);
       if (res.success) {
         setIsSubmitted(true);
+        window.scrollTo({ top: 0, behavior: 'instant' });
       } else {
         setErrorMsg(res.error || '보내지 못했습니다. 다시 시도해 주세요.');
       }

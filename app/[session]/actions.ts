@@ -15,7 +15,7 @@ export async function submitSurvey(
     return { success: false, error: '이름을 정해주세요.' };
   }
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('responses')
     .insert([
       {
@@ -23,13 +23,12 @@ export async function submitSurvey(
         display_name: displayName.trim(),
         answers,
       },
-    ])
-    .select();
+    ]);
 
   if (error) {
     console.error('Error submitting survey:', error);
     return { success: false, error: '응답 저장에 실패했습니다. 다시 시도해 주세요.' };
   }
 
-  return { success: true, data };
+  return { success: true };
 }
