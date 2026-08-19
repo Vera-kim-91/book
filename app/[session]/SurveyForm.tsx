@@ -133,13 +133,6 @@ export default function SurveyForm({ session }: SurveyFormProps) {
           당일 명찰에는 이 이름이 적힙니다.<br />
           휴대폰을 봉투에 맡기고 들어오시면 됩니다.
         </p>
-        <hr className="rule" />
-        <button
-          className="btn noprint"
-          onClick={() => router.push(`/admin/${encodeURIComponent(session)}`)}
-        >
-          운영자 화면 열기
-        </button>
       </div>
     );
   }
