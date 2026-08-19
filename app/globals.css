@@ -535,12 +535,13 @@ select {
 
 @page {
   size: A4 portrait;
-  margin: 15mm;
+  margin: 0; /* Removes default browser headers & footers by eliminating the margin area */
 }
 
 @media print {
   html, body {
     background: #fff !important;
+    padding: 15mm !important; /* Restores the inset from the paper edge */
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -558,7 +559,7 @@ select {
   .card {
     border: 1px solid var(--line) !important;
     padding: 34px 34px 26px !important;
-    margin: 10mm auto !important;
+    margin: 0 auto !important; /* Centered without double-margin */
     max-width: 175mm !important;
     page-break-after: always !important;
     break-after: page !important;
