@@ -140,6 +140,8 @@ export interface CurationResponse {
   id: string;
   session: string;
   display_name: string;
+  phone?: string;
+  affiliation?: string;
   answers: Answers;
   group_no: number | null;
   created_at: string;

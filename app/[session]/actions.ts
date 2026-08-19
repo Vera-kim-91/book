@@ -6,6 +6,8 @@ import { Answers } from '@/lib/questions';
 export async function submitSurvey(
   session: string,
   displayName: string,
+  phone: string,
+  affiliation: string,
   answers: Answers
 ) {
   if (!session) {
@@ -13,6 +15,12 @@ export async function submitSurvey(
   }
   if (!displayName || !displayName.trim()) {
     return { success: false, error: '이름을 정해주세요.' };
+  }
+  if (!phone || !phone.trim()) {
+    return { success: false, error: '연락처를 입력해주세요.' };
+  }
+  if (!affiliation || !affiliation.trim()) {
+    return { success: false, error: '소속을 입력해주세요.' };
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -31,6 +39,8 @@ export async function submitSurvey(
       {
         session,
         display_name: displayName.trim(),
+        phone: phone.trim(),
+        affiliation: affiliation.trim(),
         answers,
       },
     ]);

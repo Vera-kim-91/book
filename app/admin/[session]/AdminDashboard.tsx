@@ -60,13 +60,15 @@ export default function AdminDashboard({
     const head = [
       '#',
       '이름',
+      '연락처',
+      '소속',
       '조',
       '주제',
-      '분량',
-      '문장',
-      '리듬',
-      '이탈',
-      '톤',
+      '선호하는 분량',
+      '좋아하는 문장형태',
+      '책과 나의 거리',
+      '멈추게 되는 지점',
+      '모임에서 원하는 것',
       '준비',
       '우선',
       '좋았던것',
@@ -81,6 +83,8 @@ export default function AdminDashboard({
       return [
         String(i + 1).padStart(2, '0'),
         r.display_name,
+        r.phone || '',
+        r.affiliation || '',
         r.group_no !== null ? String(r.group_no) : '',
         themes(a),
         codeOf(QUESTIONS[2], a.q3),
@@ -157,6 +161,8 @@ export default function AdminDashboard({
               <tr>
                 <th>#</th>
                 <th>이름</th>
+                <th>연락처</th>
+                <th>소속</th>
                 <th>조</th>
                 <th>주제</th>
                 <th>선호하는 분량</th>
@@ -175,6 +181,8 @@ export default function AdminDashboard({
                   <tr key={r.id}>
                     <td className="n">{String(i + 1).padStart(2, '0')}</td>
                     <td style={{ fontWeight: 600 }}>{r.display_name}</td>
+                    <td>{r.phone || '—'}</td>
+                    <td>{r.affiliation || '—'}</td>
                     <td>
                       <select
                         value={r.group_no !== null ? String(r.group_no) : ''}

@@ -12,6 +12,8 @@ interface SurveyFormProps {
 export default function SurveyForm({ session }: SurveyFormProps) {
   const router = useRouter();
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [affiliation, setAffiliation] = useState('');
   const [answers, setAnswers] = useState<Answers>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -63,10 +65,12 @@ export default function SurveyForm({ session }: SurveyFormProps) {
     });
   };
 
-  // 5. Calculate completed required questions (total 10 items)
+  // 5. Calculate completed required questions (total 12 items)
   const getCompletedCount = () => {
     let count = 0;
     if (name.trim() !== '') count++;
+    if (phone.trim() !== '') count++;
+    if (affiliation.trim() !== '') count++;
     if ((answers.q1?.length ?? 0) > 0) count++;
     if (answers.q2?.title?.trim()) count++;
     if (answers.q3 !== undefined) count++;
@@ -87,8 +91,8 @@ export default function SurveyForm({ session }: SurveyFormProps) {
   };
 
   const completedCount = getCompletedCount();
-  const progressPercent = Math.round((completedCount / 10) * 100);
-  const isComplete = completedCount === 10;
+  const progressPercent = Math.round((completedCount / 12) * 100);
+  const isComplete = completedCount === 12;
 
   // 6. Handle submit
   const handleSubmit = async () => {
@@ -99,7 +103,7 @@ export default function SurveyForm({ session }: SurveyFormProps) {
     setIsSubmitting(true);
     setErrorMsg('');
     try {
-      const res = await submitSurvey(session, name, answers);
+      const res = await submitSurvey(session, name, phone, affiliation, answers);
       if (res.success) {
         setIsSubmitted(true);
         window.scrollTo({ top: 0, behavior: 'instant' });
@@ -166,6 +170,44 @@ export default function SurveyForm({ session }: SurveyFormProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
+        </section>
+
+        {/* 00-A. Phone Field (Required) */}
+        <section className="q">
+          <span className="qnum">00-A</span>
+          <div className="qtext">신청자 연락처</div>
+          <div className="qhint">
+            안내 문자 발송 및 예약 확인을 위해 사용되며, 운영진 외에는 절대 노출되지 않습니다.
+          </div>
+          <input
+            type="text"
+            id="phone"
+            placeholder="010-0000-0000"
+            autoComplete="off"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+        </section>
+
+        {/* 00-B. Affiliation Field (Required) */}
+        <section className="q">
+          <span className="qnum">00-B</span>
+          <div className="qtext">소속</div>
+          <div className="qhint">
+            회사, 학교, 모임 등 현재 소속되어 있는 조직을 적어주세요.
+          </div>
+          <input
+            type="text"
+            id="affiliation"
+            placeholder="예: OOO회사 기획팀, 대학생, 무직 등"
+            autoComplete="off"
+            value={affiliation}
+            onChange={(e) => setAffiliation(e.target.value)}
+          />
+          <div style={{ marginTop: '12px', fontSize: '12.5px', color: 'var(--mark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>🔒</span>
+            <span>입력하신 연락처와 소속은 운영진의 회원 확인용으로만 사용되며, 다른 참여자나 큐레이션 인쇄 카드에는 절대 공개되지 않고 안전하게 암호화 보관됩니다.</span>
+          </div>
         </section>
 
         {/* Dynamic Questions (01 - 10) */}
