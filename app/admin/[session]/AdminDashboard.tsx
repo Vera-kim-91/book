@@ -306,7 +306,7 @@ export default function AdminDashboard({
                   <span className="line"></span>
                 </div>
                 <div className="picks">
-                  당일 선택 &nbsp;&nbsp; □ 스스로 준비한 책{b.mode === 1 && b.book ? `: ${b.book}` : ''} &nbsp;&nbsp;&nbsp;&nbsp; □ 현장에서 추천받기
+                  당일 선택 &nbsp;&nbsp; {b.mode === 1 ? '☑' : '□'} 스스로 준비한 책{b.mode === 1 && b.book ? `: ${b.book}` : ''} &nbsp;&nbsp;&nbsp;&nbsp; {b.mode === 0 ? '☑' : '□'} 현장에서 추천받기
                 </div>
               </div>
             </article>
