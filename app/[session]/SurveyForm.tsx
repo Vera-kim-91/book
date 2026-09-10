@@ -367,6 +367,35 @@ export default function SurveyForm({ session }: SurveyFormProps) {
         })}
 
         <hr className="rule" />
+
+        {/* Payment Info */}
+        <div style={{
+          background: 'var(--wash)',
+          border: '1px solid var(--line)',
+          padding: '22px 24px',
+          marginBottom: '24px',
+          lineHeight: '1.85',
+        }}>
+          <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '10px', letterSpacing: '.01em' }}>
+            참가비용 안내
+          </div>
+          <ul style={{ paddingLeft: '16px', margin: '0 0 16px 0', fontSize: '13.5px', color: 'var(--mute)' }}>
+            <li>참가비용은 <strong style={{ color: 'var(--ink)' }}>20,000원</strong>입니다.</li>
+            <li>노쇼 방지 및 모임운영 비용(다과 포함)으로 활용됩니다.</li>
+            <li>현장에서 책 구매를 원하실 경우, 당일 서점을 통해 직접 구매하실 수 있습니다.</li>
+          </ul>
+          <div style={{ borderTop: '1px solid var(--line)', paddingTop: '14px', fontSize: '13.5px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'baseline' }}>
+              <span style={{ color: 'var(--faint)', fontFamily: 'var(--mono)', fontSize: '11px', letterSpacing: '.1em', minWidth: '72px' }}>참가비용</span>
+              <strong style={{ fontSize: '15px' }}>20,000원</strong>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'baseline' }}>
+              <span style={{ color: 'var(--faint)', fontFamily: 'var(--mono)', fontSize: '11px', letterSpacing: '.1em', minWidth: '72px' }}>입금계좌</span>
+              <span>김희진 &nbsp;<strong>1002-954-726035</strong> &nbsp;<span style={{ color: 'var(--mute)', fontSize: '12.5px' }}>(우리은행)</span></span>
+            </div>
+          </div>
+        </div>
+
         <button
           className="send"
           disabled={!isComplete || isSubmitting}
