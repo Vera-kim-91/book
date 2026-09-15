@@ -137,6 +137,17 @@ export default function SurveyForm({ session }: SurveyFormProps) {
           당일 명찰에는 이 이름이 적힙니다.<br />
           휴대폰을 봉투에 맡기고 들어오시면 됩니다.
         </p>
+        <p style={{
+          marginTop: '36px',
+          fontFamily: 'var(--serif)',
+          fontSize: '15px',
+          color: 'var(--mark)',
+          lineHeight: '1.8',
+          letterSpacing: '.01em',
+        }}>
+          당신과 책이 더 가까워지는 시간,<br />
+          off book에서 만나요.
+        </p>
       </div>
     );
   }
@@ -379,10 +390,11 @@ export default function SurveyForm({ session }: SurveyFormProps) {
           <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '10px', letterSpacing: '.01em' }}>
             참가비용 안내
           </div>
-          <ul style={{ paddingLeft: '16px', margin: '0 0 16px 0', fontSize: '13.5px', color: 'var(--mute)' }}>
+          <ul style={{ paddingLeft: '16px', margin: '0 0 16px 0', fontSize: '13.5px', color: 'var(--mute)', lineHeight: '1.9' }}>
             <li>참가비용은 <strong style={{ color: 'var(--ink)' }}>20,000원</strong>입니다.</li>
-            <li>노쇼 방지 및 모임운영 비용(다과 포함)으로 활용됩니다.</li>
-            <li>현장에서 책 구매를 원하실 경우, 당일 서점을 통해 직접 구매하실 수 있습니다.</li>
+            <li>노쇼 방지 및 모임운영과 교육진행비로 활용됩니다.</li>
+            <li>참가비용에 <strong style={{ color: 'var(--ink)' }}>1만원 책 크레딧</strong>이 포함되어 있습니다. 서점에서 책을 구매하실 때 사용하실 수 있습니다.</li>
+            <li>큐레이팅 받으신 책을 구매하고 싶으시다면 현장에서 말씀해 주세요.</li>
           </ul>
           <div style={{ borderTop: '1px solid var(--line)', paddingTop: '14px', fontSize: '13.5px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'baseline' }}>
