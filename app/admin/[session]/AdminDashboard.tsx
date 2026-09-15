@@ -5,15 +5,12 @@ import { useRouter } from 'next/navigation';
 import {
   QUESTIONS,
   GENRES,
-  GENRE_CODES,
   codeOf,
   themes,
   genreLikes,
-  genreAvoid,
   stops,
   star,
   CurationResponse,
-  Answers,
 } from '@/lib/questions';
 import { updateGroupNo, wipeSessionResponses } from './actions';
 

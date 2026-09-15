@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { QUESTIONS, GENRES, Answers, Question } from '@/lib/questions';
+import { QUESTIONS, GENRES, Answers } from '@/lib/questions';
 import { submitSurvey } from './actions';
 
 interface SurveyFormProps {
