@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { QUESTIONS, Answers, Question } from '@/lib/questions';
+import { QUESTIONS, GENRES, Answers, Question } from '@/lib/questions';
 import { submitSurvey } from './actions';
 
 interface SurveyFormProps {
@@ -10,7 +9,6 @@ interface SurveyFormProps {
 }
 
 export default function SurveyForm({ session }: SurveyFormProps) {
-  const router = useRouter();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [affiliation, setAffiliation] = useState('');
@@ -19,87 +17,86 @@ export default function SurveyForm({ session }: SurveyFormProps) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // 1. Check if a dynamic option is disabled for multi-select
+  /* ── helpers ── */
   const isMultiDisabled = (qId: string, index: number, max: number) => {
     const arr = (answers[qId as keyof Answers] as number[]) || [];
     return arr.length >= max && !arr.includes(index);
   };
 
-  // 2. Handle click for option (multi-select)
   const handleMultiClick = (qId: string, index: number, max: number) => {
     if (isMultiDisabled(qId, index, max)) return;
     const cur = (answers[qId as keyof Answers] as number[]) || [];
     const at = cur.indexOf(index);
-    let updated: number[];
-    if (at > -1) {
-      updated = cur.filter((i) => i !== index);
-    } else {
-      updated = [...cur, index];
-    }
+    const updated = at > -1 ? cur.filter((i) => i !== index) : [...cur, index];
     setAnswers({ ...answers, [qId]: updated });
   };
 
-  // 3. Handle click for option (single-select)
   const handleSingleClick = (qId: string, index: number) => {
     setAnswers({ ...answers, [qId]: index });
   };
 
-  // 4. Handle click for q9 (book preparation)
+  /* ── q3 장르 ── */
+  const handleGenreLike = (index: number) => {
+    const cur = answers.q3?.like ?? [];
+    const avoid = answers.q3?.avoid ?? null;
+    const alreadyIn = cur.includes(index);
+    if (!alreadyIn && cur.length >= 3) return;
+    const like = alreadyIn ? cur.filter((i) => i !== index) : [...cur, index];
+    // avoid가 같은 항목이면 해제
+    const newAvoid = avoid === index ? null : avoid;
+    setAnswers({ ...answers, q3: { like, avoid: newAvoid } });
+  };
+
+  const handleGenreAvoid = (index: number | null) => {
+    const like = answers.q3?.like ?? [];
+    setAnswers({ ...answers, q3: { like, avoid: index } });
+  };
+
+  /* ── q10 도서 준비 ── */
   const handleBookClick = (index: number) => {
-    setAnswers({
-      ...answers,
-      q9: {
-        mode: index,
-        book: answers.q9?.book || '',
-      },
-    });
+    setAnswers({ ...answers, q10: { mode: index, book: answers.q10?.book ?? '' } });
+  };
+  const handleBookText = (text: string) => {
+    setAnswers({ ...answers, q10: { mode: answers.q10?.mode ?? -1, book: text } });
   };
 
-  const handleBookTextChange = (text: string) => {
-    setAnswers({
-      ...answers,
-      q9: {
-        mode: answers.q9?.mode ?? -1,
-        book: text,
-      },
-    });
+  /* ── q11 덮어둔 것 ── */
+  const handleFree = (val: string) => {
+    setAnswers({ ...answers, q11: { v: val } });
   };
 
-  // 5. Calculate completed required questions (total 12 items)
+  /* ── 진행률 (필수 11항목 + name + phone + affiliation = 14) ── */
   const getCompletedCount = () => {
-    let count = 0;
-    if (name.trim() !== '') count++;
-    if (phone.trim() !== '') count++;
-    if (affiliation.trim() !== '') count++;
-    if ((answers.q1?.length ?? 0) > 0) count++;
-    if (answers.q2?.title?.trim()) count++;
-    if (answers.q3 !== undefined) count++;
-    if (answers.q4 !== undefined) count++;
-    if (answers.q5 !== undefined) count++;
-    if (answers.q6 !== undefined) count++;
-    if ((answers.q7?.length ?? 0) > 0) count++;
-    if (answers.q8 !== undefined) count++;
-    
-    if (answers.q9?.mode !== undefined) {
-      if (answers.q9.mode === 1) {
-        if (answers.q9.book?.trim()) count++;
-      } else {
-        count++;
-      }
+    let c = 0;
+    if (name.trim()) c++;
+    if (phone.trim()) c++;
+    if (affiliation.trim()) c++;
+    if ((answers.q1?.length ?? 0) > 0) c++;
+    if (answers.q2?.title?.trim()) c++;
+    if ((answers.q3?.like?.length ?? 0) > 0) c++;   // q3 like 필수
+    if (answers.q4 !== undefined) c++;
+    if (answers.q5 !== undefined) c++;
+    if (answers.q6 !== undefined) c++;
+    if (answers.q7 !== undefined) c++;
+    if ((answers.q8?.length ?? 0) > 0) c++;
+    if (answers.q9 !== undefined) c++;
+    // q10
+    if (answers.q10?.mode !== undefined) {
+      if (answers.q10.mode === 1) { if (answers.q10.book?.trim()) c++; }
+      else c++;
     }
-    return count;
+    // q11 선택 — 진행률에서 제외
+    return c;
   };
 
+  const TOTAL = 13; // name+phone+affiliation + q1~q10(필수)
   const completedCount = getCompletedCount();
-  const progressPercent = Math.round((completedCount / 12) * 100);
-  const isComplete = completedCount === 12;
+  const progressPercent = Math.min(Math.round((completedCount / TOTAL) * 100), 100);
+  const isComplete = completedCount >= TOTAL;
 
-  // 6. Handle submit
+  /* ── 제출 ── */
   const handleSubmit = async () => {
-    if (!isComplete) {
-      setErrorMsg('모든 필수 문항에 답변해 주세요.');
-      return;
-    }
+    if (!isComplete) { setErrorMsg('모든 필수 문항에 답변해 주세요.'); return; }
     setIsSubmitting(true);
     setErrorMsg('');
     try {
@@ -108,24 +105,20 @@ export default function SurveyForm({ session }: SurveyFormProps) {
         setIsSubmitted(true);
         window.scrollTo({ top: 0, behavior: 'instant' });
       } else {
-        setErrorMsg(res.error || '보내지 못했습니다. 다시 시도해 주세요.');
+        setErrorMsg(res.error ?? '보내지 못했습니다. 다시 시도해 주세요.');
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       setErrorMsg('보내지 못했습니다. 네트워크 상황을 확인해 주세요.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // 7. Accessible key handler
   const handleKeyDown = (e: React.KeyboardEvent, action: () => void) => {
-    if (e.key === ' ' || e.key === 'Enter') {
-      e.preventDefault();
-      action();
-    }
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); action(); }
   };
 
+  /* ── 완료 화면 ── */
   if (isSubmitted) {
     return (
       <div className="wrap done">
@@ -152,6 +145,7 @@ export default function SurveyForm({ session }: SurveyFormProps) {
     );
   }
 
+  /* ── 설문 화면 ── */
   return (
     <>
       <div className="prog noprint">
@@ -166,230 +160,262 @@ export default function SurveyForm({ session }: SurveyFormProps) {
         </p>
         <hr className="rule" />
 
-        {/* 00. Name Field (Required) */}
+        {/* 00. 이름 */}
         <section className="q">
           <span className="qnum">00</span>
           <div className="qtext">그날 불릴 이름을 정해주세요.</div>
-          <div className="qhint">
-            본명도 좋고, 그날만 쓸 이름을 새로 지으셔도 좋습니다. 명찰과 큐레이션 카드에 이 이름이 적힙니다.
-          </div>
-          <input
-            type="text"
-            id="name"
-            placeholder="예: 김지연, 목요일, 3번 테이블"
-            autoComplete="off"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <div className="qhint">본명도 좋고, 그날만 쓸 이름을 새로 지으셔도 좋습니다. 명찰과 큐레이션 카드에 이 이름이 적힙니다.</div>
+          <input type="text" placeholder="예: 김지연, 목요일, 3번 테이블" autoComplete="off" value={name} onChange={(e) => setName(e.target.value)} />
         </section>
 
-        {/* 00-A. Phone Field (Required) */}
+        {/* 00-A. 연락처 */}
         <section className="q">
           <span className="qnum">00-A</span>
           <div className="qtext">신청자 연락처</div>
-          <div className="qhint">
-            안내 문자 발송 및 예약 확인을 위해 사용되며, 운영진 외에는 절대 노출되지 않습니다.
-          </div>
-          <input
-            type="text"
-            id="phone"
-            placeholder="010-0000-0000"
-            autoComplete="off"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
+          <div className="qhint">안내 문자 발송 및 예약 확인을 위해 사용되며, 운영진 외에는 절대 노출되지 않습니다.</div>
+          <input type="text" placeholder="010-0000-0000" autoComplete="off" value={phone} onChange={(e) => setPhone(e.target.value)} />
         </section>
 
-        {/* 00-B. Affiliation Field (Required) */}
+        {/* 00-B. 소속 */}
         <section className="q">
           <span className="qnum">00-B</span>
           <div className="qtext">소속</div>
-          <div className="qhint">
-            회사, 학교, 모임 등 현재 소속되어 있는 조직을 적어주세요.
-          </div>
-          <input
-            type="text"
-            id="affiliation"
-            placeholder="예: OOO회사 기획팀, 대학생, 무직 등"
-            autoComplete="off"
-            value={affiliation}
-            onChange={(e) => setAffiliation(e.target.value)}
-          />
-          <div style={{ marginTop: '12px', fontSize: '12.5px', color: 'var(--mark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div className="qhint">회사, 학교, 모임 등 현재 소속되어 있는 조직을 적어주세요.</div>
+          <input type="text" placeholder="예: OOO회사 기획팀, 대학생, 무직 등" autoComplete="off" value={affiliation} onChange={(e) => setAffiliation(e.target.value)} />
+          <div style={{ marginTop: '12px', fontSize: '12.5px', color: 'var(--mark)', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
             <span>🔒</span>
-            <span>입력하신 연락처와 소속은 운영진의 회원 확인용으로만 사용되며, 다른 참여자나 큐레이션 인쇄 카드에는 절대 공개되지 않고 안전하게 암호화 보관됩니다.</span>
+            <span>입력하신 연락처와 소속은 운영진의 회원 확인용으로만 사용되며, 다른 참여자나 큐레이션 인쇄 카드에는 절대 공개되지 않습니다.</span>
           </div>
         </section>
 
-        {/* Dynamic Questions (01 - 10) */}
+        {/* 01 ~ 11 동적 문항 */}
         {QUESTIONS.map((q, i) => {
           const num = String(i + 1).padStart(2, '0');
-          
-          return (
-            <section className="q" key={q.id}>
-              <span className="qnum">{num}</span>
-              <div className="qtext">
-                {q.text}
-                {q.type === 'multi' && <span className="qmax">{q.max}개까지</span>}
-              </div>
-              {q.hint && <div className="qhint">{q.hint}</div>}
 
-              {/* Multi Select rendering */}
-              {q.type === 'multi' && q.opts && (
+          /* ── q3 장르 전용 UI ── */
+          if (q.kind === 'genre') {
+            const likeList = answers.q3?.like ?? [];
+            const avoidVal = answers.q3?.avoid ?? null;
+            const AVOID_NONE = 8; // 특별히 없음 idx
+            return (
+              <section className="q" key={q.id}>
+                <span className="qnum">{num}</span>
+                <div className="qtext">
+                  {q.text}
+                  <span className="qmax">3개까지</span>
+                </div>
                 <div className="opts">
-                  {q.opts.map((optText, optIdx) => {
-                    const isChecked = ((answers[q.id as keyof Answers] as number[]) || []).includes(optIdx);
-                    const isDisabled = isMultiDisabled(q.id, optIdx, q.max || 2);
-                    const optAction = () => handleMultiClick(q.id, optIdx, q.max || 2);
-
+                  {GENRES.map((g, idx) => {
+                    const checked = likeList.includes(idx);
+                    const disabled = !checked && likeList.length >= q.max;
                     return (
                       <div
-                        key={optIdx}
-                        className={`opt ${isDisabled ? 'disabled' : ''}`}
+                        key={idx}
+                        className={`opt${disabled ? ' disabled' : ''}`}
                         role="checkbox"
-                        aria-checked={isChecked}
-                        tabIndex={isDisabled ? -1 : 0}
-                        onClick={optAction}
-                        onKeyDown={(e) => handleKeyDown(e, optAction)}
+                        aria-checked={checked}
+                        tabIndex={disabled ? -1 : 0}
+                        onClick={() => !disabled && handleGenreLike(idx)}
+                        onKeyDown={(e) => handleKeyDown(e, () => !disabled && handleGenreLike(idx))}
                       >
-                        <span className="box"></span>
-                        <span>{optText}</span>
+                        <span className="box" />
+                        {g}
                       </div>
                     );
                   })}
                 </div>
-              )}
 
-              {/* Single Select rendering */}
-              {q.type === 'single' && q.opts && (
-                <div className="opts">
-                  {q.opts.map((optText, optIdx) => {
-                    const isChecked = answers[q.id as keyof Answers] === optIdx;
-                    const optAction = () => handleSingleClick(q.id, optIdx);
-
-                    return (
-                      <div
-                        key={optIdx}
-                        className="opt"
-                        role="radio"
-                        aria-checked={isChecked}
-                        tabIndex={0}
-                        onClick={optAction}
-                        onKeyDown={(e) => handleKeyDown(e, optAction)}
-                      >
-                        <span className="box"></span>
-                        <span>{optText}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Q2 (Title) rendering */}
-              {q.type === 'title' && (
-                <>
-                  <input
-                    type="text"
-                    placeholder={q.ph}
-                    autoComplete="off"
-                    value={answers.q2?.title || ''}
-                    onChange={(e) =>
-                      setAnswers({
-                        ...answers,
-                        q2: {
-                          title: e.target.value,
-                          why: answers.q2?.why || '',
-                        },
-                      })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder={q.ph2}
-                    autoComplete="off"
-                    value={answers.q2?.why || ''}
-                    onChange={(e) =>
-                      setAnswers({
-                        ...answers,
-                        q2: {
-                          title: answers.q2?.title || '',
-                          why: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </>
-              )}
-
-              {/* Q9 (Book prep + Conditional text) rendering */}
-              {q.type === 'book' && q.opts && (
-                <>
+                {/* avoid */}
+                <div style={{ marginTop: '32px' }}>
+                  <div className="qtext" style={{ fontSize: '15px' }}>{q.text2} <span className="qmax">선택</span></div>
                   <div className="opts">
-                    {q.opts.map((optText, optIdx) => {
-                      const isChecked = answers.q9?.mode === optIdx;
-                      const optAction = () => handleBookClick(optIdx);
-
+                    {GENRES.map((g, idx) => {
+                      const isLiked = likeList.includes(idx);
+                      const checked = avoidVal === idx;
                       return (
                         <div
-                          key={optIdx}
-                          className="opt"
+                          key={idx}
+                          className={`opt${isLiked ? ' disabled' : ''}`}
                           role="radio"
-                          aria-checked={isChecked}
-                          tabIndex={0}
-                          onClick={optAction}
-                          onKeyDown={(e) => handleKeyDown(e, optAction)}
+                          aria-checked={checked}
+                          tabIndex={isLiked ? -1 : 0}
+                          onClick={() => { if (!isLiked) handleGenreAvoid(checked ? null : idx); }}
+                          onKeyDown={(e) => handleKeyDown(e, () => { if (!isLiked) handleGenreAvoid(checked ? null : idx); })}
                         >
-                          <span className="box"></span>
-                          <span>{optText}</span>
+                          <span className="box" />
+                          {g}
                         </div>
                       );
                     })}
-                  </div>
-                  {answers.q9?.mode === 1 && (
-                    <div className="sub" id="bookIn">
-                      <input
-                        type="text"
-                        placeholder={q.ph}
-                        autoComplete="off"
-                        value={answers.q9.book || ''}
-                        onChange={(e) => handleBookTextChange(e.target.value)}
-                      />
+                    {/* 특별히 없음 */}
+                    <div
+                      className="opt"
+                      role="radio"
+                      aria-checked={avoidVal === AVOID_NONE}
+                      tabIndex={0}
+                      onClick={() => handleGenreAvoid(avoidVal === AVOID_NONE ? null : AVOID_NONE)}
+                      onKeyDown={(e) => handleKeyDown(e, () => handleGenreAvoid(avoidVal === AVOID_NONE ? null : AVOID_NONE))}
+                    >
+                      <span className="box" />
+                      특별히 없음
                     </div>
-                  )}
-                </>
-              )}
+                  </div>
+                </div>
+              </section>
+            );
+          }
 
-              {/* Q10 (Free text) rendering */}
-              {q.type === 'free' && (
-                <textarea
-                  rows={2}
-                  placeholder={q.ph}
-                  value={answers.q10?.v || ''}
-                  onChange={(e) =>
-                    setAnswers({
-                      ...answers,
-                      q10: { v: e.target.value },
-                    })
-                  }
+          /* ── q10 도서 준비 ── */
+          if (q.kind === 'book' && 'opts' in q && q.opts) {
+            const mode = answers.q10?.mode;
+            return (
+              <section className="q" key={q.id}>
+                <span className="qnum">{num}</span>
+                <div className="qtext">{q.text}</div>
+                <div className="opts">
+                  {q.opts.map((opt, idx) => (
+                    <div
+                      key={idx}
+                      className="opt"
+                      role="radio"
+                      aria-checked={mode === idx}
+                      tabIndex={0}
+                      onClick={() => handleBookClick(idx)}
+                      onKeyDown={(e) => handleKeyDown(e, () => handleBookClick(idx))}
+                    >
+                      <span className="box" />
+                      {opt}
+                    </div>
+                  ))}
+                </div>
+                {mode === 1 && (
+                  <div className="sub">
+                    <input
+                      type="text"
+                      placeholder={'ph' in q ? q.ph : ''}
+                      value={answers.q10?.book ?? ''}
+                      onChange={(e) => handleBookText(e.target.value)}
+                    />
+                  </div>
+                )}
+              </section>
+            );
+          }
+
+          /* ── q11 자유서술 (선택) ── */
+          if (q.kind === 'free') {
+            return (
+              <section className="q" key={q.id}>
+                <span className="qnum">{num}</span>
+                <div className="qtext">{q.text}</div>
+                {q.hint && <div className="qhint">{q.hint}</div>}
+                <input
+                  type="text"
+                  placeholder={'ph' in q ? q.ph : ''}
+                  value={answers.q11?.v ?? ''}
+                  onChange={(e) => handleFree(e.target.value)}
                 />
-              )}
-            </section>
-          );
+              </section>
+            );
+          }
+
+          /* ── title (q2) ── */
+          if (q.kind === 'title') {
+            return (
+              <section className="q" key={q.id}>
+                <span className="qnum">{num}</span>
+                <div className="qtext">{q.text}</div>
+                {q.hint && <div className="qhint">{q.hint}</div>}
+                <input
+                  type="text"
+                  placeholder={'ph' in q ? q.ph : ''}
+                  value={answers.q2?.title ?? ''}
+                  onChange={(e) => setAnswers({ ...answers, q2: { title: e.target.value, why: answers.q2?.why ?? '' } })}
+                />
+                {'ph2' in q && q.ph2 && (
+                  <input
+                    type="text"
+                    placeholder={q.ph2}
+                    value={answers.q2?.why ?? ''}
+                    style={{ marginTop: '8px' }}
+                    onChange={(e) => setAnswers({ ...answers, q2: { title: answers.q2?.title ?? '', why: e.target.value } })}
+                  />
+                )}
+              </section>
+            );
+          }
+
+          /* ── multi (q1, q8) ── */
+          if (q.kind === 'multi' && 'opts' in q && q.opts) {
+            const cur = (answers[q.id as keyof Answers] as number[]) ?? [];
+            return (
+              <section className="q" key={q.id}>
+                <span className="qnum">{num}</span>
+                <div className="qtext">
+                  {q.text}
+                  {q.max && <span className="qmax">{q.max}개까지</span>}
+                </div>
+                {q.hint && <div className="qhint">{q.hint}</div>}
+                <div className="opts">
+                  {q.opts.map((opt, idx) => {
+                    const checked = cur.includes(idx);
+                    const disabled = !checked && cur.length >= (q.max ?? 99);
+                    return (
+                      <div
+                        key={idx}
+                        className={`opt${disabled ? ' disabled' : ''}`}
+                        role="checkbox"
+                        aria-checked={checked}
+                        tabIndex={disabled ? -1 : 0}
+                        onClick={() => handleMultiClick(q.id, idx, q.max ?? 99)}
+                        onKeyDown={(e) => handleKeyDown(e, () => handleMultiClick(q.id, idx, q.max ?? 99))}
+                      >
+                        <span className="box" />
+                        {opt}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          }
+
+          /* ── single (q4, q5, q6, q7, q9) ── */
+          if (q.kind === 'single' && 'opts' in q && q.opts) {
+            const cur = answers[q.id as keyof Answers] as number | undefined;
+            return (
+              <section className="q" key={q.id}>
+                <span className="qnum">{num}</span>
+                <div className="qtext">{q.text}</div>
+                {q.hint && <div className="qhint">{q.hint}</div>}
+                <div className="opts">
+                  {q.opts.map((opt, idx) => (
+                    <div
+                      key={idx}
+                      className="opt"
+                      role="radio"
+                      aria-checked={cur === idx}
+                      tabIndex={0}
+                      onClick={() => handleSingleClick(q.id, idx)}
+                      onKeyDown={(e) => handleKeyDown(e, () => handleSingleClick(q.id, idx))}
+                    >
+                      <span className="box" />
+                      {opt}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          }
+
+          return null;
         })}
 
         <hr className="rule" />
 
-        {/* Payment Info */}
-        <div style={{
-          background: 'var(--wash)',
-          border: '1px solid var(--line)',
-          padding: '22px 24px',
-          marginBottom: '24px',
-          lineHeight: '1.85',
-        }}>
-          <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '10px', letterSpacing: '.01em' }}>
-            참가비용 안내
-          </div>
+        {/* 참가비 안내 */}
+        <div style={{ background: 'var(--wash)', border: '1px solid var(--line)', padding: '22px 24px', marginBottom: '24px', lineHeight: '1.85' }}>
+          <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '10px', letterSpacing: '.01em' }}>참가비용 안내</div>
           <ul style={{ paddingLeft: '16px', margin: '0 0 16px 0', fontSize: '13.5px', color: 'var(--mute)', lineHeight: '1.9' }}>
             <li>참가비용은 <strong style={{ color: 'var(--ink)' }}>20,000원</strong>입니다.</li>
             <li>노쇼 방지 및 모임운영과 교육진행비로 활용됩니다.</li>
@@ -408,15 +434,11 @@ export default function SurveyForm({ session }: SurveyFormProps) {
           </div>
         </div>
 
-        <button
-          className="send"
-          disabled={!isComplete || isSubmitting}
-          onClick={handleSubmit}
-        >
+        <button className="send" disabled={!isComplete || isSubmitting} onClick={handleSubmit}>
           {isSubmitting ? '보내는 중…' : '보내기'}
         </button>
         {errorMsg && <div className="msg">{errorMsg}</div>}
-        
+
         <div style={{ marginTop: '40px', fontSize: '12.5px', color: 'var(--mute)', lineHeight: '1.6' }}>
           <strong>개인정보 수집 및 이용 고지</strong>
           <ul style={{ paddingLeft: '16px', margin: '6px 0 0 0' }}>
