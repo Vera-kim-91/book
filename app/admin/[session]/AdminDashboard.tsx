@@ -228,6 +228,7 @@ export default function AdminDashboard({
             ['두께', q4 && 'opts' in q4 && q4.opts && a.q4 !== undefined ? q4.opts[a.q4] : '—'],
             ['그날의 도달점', q5 && 'opts' in q5 && q5.opts && a.q5 !== undefined ? q5.opts[a.q5] : '—'],
             ['문장', q6 && 'opts' in q6 && q6.opts && a.q6 !== undefined ? q6.opts[a.q6] : '—'],
+            ['책과의 거리', q7 && 'opts' in q7 && q7.opts && a.q7 !== undefined ? q7.opts[a.q7] : '—'],
             ['이탈 지점', stops(a) || '—'],
             ['원하는 톤', q9 && 'opts' in q9 && q9.opts && a.q9 !== undefined ? q9.opts[a.q9] : '—'],
           ];

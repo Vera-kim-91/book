@@ -268,6 +268,7 @@ export default function SurveyForm({ session }: SurveyFormProps) {
           /* ── q10 도서 준비 ── */
           if (q.kind === 'book' && 'opts' in q && q.opts) {
             const mode = answers.q10?.mode;
+            const book = answers.q10?.book ?? '';
             return (
               <section className="q" key={q.id}>
                 <span className="qnum">{num}</span>
@@ -293,9 +294,13 @@ export default function SurveyForm({ session }: SurveyFormProps) {
                     <input
                       type="text"
                       placeholder={'ph' in q ? q.ph : ''}
-                      value={answers.q10?.book ?? ''}
+                      value={book}
+                      maxLength={100}
                       onChange={(e) => handleBookText(e.target.value)}
                     />
+                    <div style={{ fontSize: '11px', color: book.length >= 90 ? 'var(--mark)' : 'var(--faint)', textAlign: 'right', marginTop: '3px' }}>
+                      {book.length}/100
+                    </div>
                   </div>
                 )}
               </section>
@@ -321,6 +326,7 @@ export default function SurveyForm({ session }: SurveyFormProps) {
 
           /* ── title (q2) ── */
           if (q.kind === 'title') {
+            const why = answers.q2?.why ?? '';
             return (
               <section className="q" key={q.id}>
                 <span className="qnum">{num}</span>
@@ -333,13 +339,19 @@ export default function SurveyForm({ session }: SurveyFormProps) {
                   onChange={(e) => setAnswers({ ...answers, q2: { title: e.target.value, why: answers.q2?.why ?? '' } })}
                 />
                 {'ph2' in q && q.ph2 && (
-                  <input
-                    type="text"
-                    placeholder={q.ph2}
-                    value={answers.q2?.why ?? ''}
-                    style={{ marginTop: '8px' }}
-                    onChange={(e) => setAnswers({ ...answers, q2: { title: answers.q2?.title ?? '', why: e.target.value } })}
-                  />
+                  <>
+                    <input
+                      type="text"
+                      placeholder={q.ph2}
+                      value={why}
+                      maxLength={100}
+                      style={{ marginTop: '8px' }}
+                      onChange={(e) => setAnswers({ ...answers, q2: { title: answers.q2?.title ?? '', why: e.target.value } })}
+                    />
+                    <div style={{ fontSize: '11px', color: why.length >= 90 ? 'var(--mark)' : 'var(--faint)', textAlign: 'right', marginTop: '3px' }}>
+                      {why.length}/100
+                    </div>
+                  </>
                 )}
               </section>
             );
